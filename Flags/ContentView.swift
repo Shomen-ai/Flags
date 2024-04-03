@@ -5,7 +5,7 @@ struct Flag {
     let symbol: String
 }
 
-// MARK: -  ViewModel
+// MARK: - ViewModel
 class FlagListViewModel: ObservableObject {
     @Published var flags: [Flag] = [
         Flag(symbol: "🇺🇸"),
@@ -25,7 +25,8 @@ class FlagListViewModel: ObservableObject {
 struct FlagListView: View {
     @ObservedObject var viewModel: FlagListViewModel
     @State private var scrollTarget: Int? = nil
-    
+    @State private var scrollViewProxy: ScrollViewProxy? = nil
+
     var body: some View {
         VStack {
             Spacer()
@@ -40,25 +41,26 @@ struct FlagListView: View {
                                 .id(index)
                         }
                     }
-                    .onChange(of: scrollTarget) { target in
-                        if let target = target {
-                            withAnimation(.easeInOut(duration: 1.5)) {
-                                proxy.scrollTo(target, anchor: .bottom)
-                            }
-                            scrollTarget = nil
-                        }
+                    .onAppear {
+                        self.scrollViewProxy = proxy
                     }
                 }
+                .onChange(of: scrollTarget) { target in
+                    guard let target = target else { return }
+                    guard let scrollViewProxy = scrollViewProxy else { return }
+                    withAnimation(Animation.easeInOut(duration: 150), {
+                        scrollViewProxy.scrollTo(target)
+                    })
+                }
             }
+            
             .frame(width: 100, height: 100)
             .border(.black, width: 3)
-            
+
             Spacer()
-            
+
             Button(action: {
-                if let lastIndex = viewModel.flags.indices.last {
-                    scrollTarget = lastIndex
-                }
+                scrollTarget = Int.random(in: 0..<viewModel.flags.count)
             }) {
                 Text("Hit me!")
                     .padding()
