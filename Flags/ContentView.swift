@@ -41,7 +41,6 @@ struct FlagListView: View {
                                 .id(index)
                         }
                     }
-                    .background(.red)
                     .offset(y: min(contentOffset, 0))
                 }
                 
@@ -56,7 +55,6 @@ struct FlagListView: View {
                 }
             }
             .frame(width: 100, height: 100)
-            .background(.green)
             
             Spacer()
             
