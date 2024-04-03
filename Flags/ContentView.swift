@@ -25,13 +25,13 @@ class FlagListViewModel: ObservableObject {
 struct FlagListView: View {
     @ObservedObject var viewModel: FlagListViewModel
     @State private var scrollTarget: Int? = nil
-    @State private var scrollViewProxy: ScrollViewProxy? = nil
-
+    @State private var contentOffset: CGFloat = 0
+    
     var body: some View {
         VStack {
             Spacer()
-            ScrollView(.vertical, showsIndicators: false) {
-                ScrollViewReader { proxy in
+            GeometryReader { geometry in
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
                         ForEach(viewModel.flags.indices, id: \.self) { index in
                             Text(viewModel.flags[index].symbol)
@@ -41,24 +41,25 @@ struct FlagListView: View {
                                 .id(index)
                         }
                     }
-                    .onAppear {
-                        self.scrollViewProxy = proxy
-                    }
+                    .background(.red)
+                    .offset(y: min(contentOffset, 0))
                 }
+                
+                .frame(width: 100, height: 100)
+                .border(.black, width: 3)
                 .onChange(of: scrollTarget) { target in
                     guard let target = target else { return }
-                    guard let scrollViewProxy = scrollViewProxy else { return }
-                    withAnimation(Animation.easeInOut(duration: 150), {
-                        scrollViewProxy.scrollTo(target)
-                    })
+                    let indexHeight = CGFloat(target) * 100
+                    withAnimation(Animation.easeInOut(duration: 1.5)) {
+                        contentOffset = (-indexHeight + (geometry.size.height)).rounded(.awayFromZero)
+                    }
                 }
             }
-            
             .frame(width: 100, height: 100)
-            .border(.black, width: 3)
-
+            .background(.green)
+            
             Spacer()
-
+            
             Button(action: {
                 scrollTarget = Int.random(in: 0..<viewModel.flags.count)
             }) {
